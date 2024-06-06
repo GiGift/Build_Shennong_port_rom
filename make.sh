@@ -161,6 +161,14 @@ echo "vendor_base_line=$vendor_base_line" >>$GITHUB_ENV
 ### 功能修复
 echo -e "${Red}- 开始功能修复"
 Start_Time
+# 添加 KernelSU 支持 (可选择)
+echo -e "${Red}- 添加 KernelSU 支持 (可选择)"
+mkdir -p "$GITHUB_WORKSPACE"/init_boot
+cd "$GITHUB_WORKSPACE"/init_boot
+cp -f "$GITHUB_WORKSPACE"/"${device}"/firmware-update/init_boot.img "$GITHUB_WORKSPACE"/init_boot
+$ksud boot-patch -b "$GITHUB_WORKSPACE"/init_boot/init_boot.img --magiskboot $magiskboot --kmi android14-6.1
+mv -f "$GITHUB_WORKSPACE"/init_boot/kernelsu_*.img "$GITHUB_WORKSPACE"/"${device}"/firmware-update/init_boot-kernelsu.img
+rm -rf "$GITHUB_WORKSPACE"/init_boot
 # 替换 vendor_boot 的 fstab
 echo -e "${Red}- 替换 Vendor Boot 的 fstab"
 mkdir -p "$GITHUB_WORKSPACE"/vendor_boot
@@ -243,16 +251,17 @@ for vendor_build_prop in $(sudo find "$GITHUB_WORKSPACE"/"${device}"/ -type f -n
 done
 # 精简部分应用1
 echo -e "${Red}- 精简部分应用1"
-apps=("AnalyticsCore" "HybridPlatform" "CarWith" "CatchLog" "com.xiaomi.ugd" "GoogleLocationHistory" "GooglePrintRecommendationService" "MiBugReport" "MIUIReporter" "OtaProvision" "OTrPBroker" "PaymentService" "remoteSimLockAuthentication" "remotesimlockservice" "talkback" "uimgbaservice" "uimlpaservice" "uimremoteclient" "uimremoteserver" "Updater" "UPTsmService" "system" "AiAsstVision" "com.xiaomi.macro" "mi_connect_service" "MiLinkOS1ForHM" "VoiceAssistAndroidT" "VoiceTrigger" "VoiceTrigger" "XiaoaiEdgeEngine" "XiaoaiRecommendation""MIUIAiasstService""MIS")
+apps=("AiAsstVision" "AnalyticsCore" "CarWith" "CatchLog" "com.xiaomi.macro" "com.xiaomi.ugd" "GoogleLocationHistory" "HybridPlatform" "mi_connect_service"  "MiBugReport"  "MiLinkOS1ForHM" "MIS" "MIUIAiasstService" "MIUIgreenguard" "MIUIReporter" "OtaProvision" "OTrPBroker" "PaymentService" "remoteSimLockAuthentication" "remotesimlockservice" "RideModeAudio" "SwitchAccess" "system"  "talkback"  "Updater" "UPTsmService""VoiceAssistAndroidT" "VoiceTrigger" "WMService" "XiaoaiEdgeEngine" "XiaoaiRecommendation")
 for app in "${apps[@]}"; do
   appsui=$(sudo find "$GITHUB_WORKSPACE"/images/product/app/ -type d -iname "*${app}*")
   if [[ -n $appsui ]]; then
     echo -e "${Yellow}- 找到精简目录: $appsui"
     sudo rm -rf "$appsui"
   fi
-done# 精简部分应用2
+done
+# 精简部分应用2
 echo -e "${Red}- 精简部分应用2"
-apps=("MIGalleryLockscreen" "MIpay" "MIUIDriveMode" "MIUIDuokanReader" "MIUIGameCenter" "MIUINewHome" "MIUIYoupin" "MIUIHuanJi" "MIUIMiDrive" "MIUIVirtualSim" "ThirdAppAssistant" "XMRemoteController" "MIUIVipAccount" "MiuiScanner" "Xinre" "SmartHome" "MiShop" "MiRadio" "MIUICompass" "BaiduIME" "iflytek.inputmethod" "MIUIEmail" "MIUIVideo" "MIUIMusicT" "Health" "MIService" "MIUIXiaoAiSpeechEngine" "Health")
+apps=("Health" "MIUIXiaoAiSpeechEngine" "MIGalleryLockscreen" "MIpay" "MIUIDriveMode" "MIUIDuokanReader" "MIUIGameCenter" "MIUINewHome" "MIUIYoupin" "MIUIHuanJi" "MIUIMiDrive" "MIUIVirtualSim" "ThirdAppAssistant" "XMRemoteController" "MIUIVipAccount" "MiuiScanner" "Xinre" "SmartHome" "MiShop" "MiRadio" "MIUICompass" "BaiduIME" "iflytek.inputmethod" "MIUIEmail" "MIUIVideo" "MIUIMusicT" "Health" "MIService")
 for app in "${apps[@]}"; do
   appsui=$(sudo find "$GITHUB_WORKSPACE"/images/product/data-app/ -type d -iname "*${app}*")
   if [[ -n $appsui ]]; then
@@ -262,9 +271,9 @@ for app in "${apps[@]}"; do
 done
 # 精简部分应用3
 echo -e "${Red}- 精简部分应用3"
-apps=("ConfigUpdater")
+apps=("SystemHelper")
 for app in "${apps[@]}"; do
-  appsui=$(sudo find "$GITHUB_WORKSPACE"/images/product/priv-app/ -type d -iname "*${app}*")
+  appsui=$(sudo find "$GITHUB_WORKSPACE"/images/product/pangu/system/priv-app/ -type d -iname "*${app}*")
   if [[ -n $appsui ]]; then
     echo -e "${Yellow}- 找到精简目录: $appsui"
     sudo rm -rf "$appsui"
@@ -272,9 +281,9 @@ for app in "${apps[@]}"; do
 done
 # 精简部分应用4
 echo -e "${Red}- 精简部分应用4"
-apps=("SystemHelper")
+apps=("AutoRegistration" "ConfigUpdater" "MiGameCenterSDKService" "MIShare" "MIUIBarrageV2" "MIUIMirror" "RegService")
 for app in "${apps[@]}"; do
-  appsui=$(sudo find "$GITHUB_WORKSPACE"/images/product/pangu/system/priv-app/ -type d -iname "*${app}*")
+  appsui=$(sudo find "$GITHUB_WORKSPACE"/images/product/priv-app/ -type d -iname "*${app}*")
   if [[ -n $appsui ]]; then
     echo -e "${Yellow}- 找到精简目录: $appsui"
     sudo rm -rf "$appsui"
@@ -411,7 +420,7 @@ echo -e "${Red}- 定制 ROM 包名"
 md5=$(md5sum "$GITHUB_WORKSPACE"/zip/miui_${device}_${port_os_version}.zip)
 echo "MD5=${md5:0:32}" >>$GITHUB_ENV
 zip_md5=${md5:0:10}
-rom_name="miui_SHENNONG_${port_os_version}_${zip_md5}_${android_version}.0_YuKongA.zip"
+rom_name="ULTRA_SHENNONG_${port_os_version}_${zip_md5}_${android_version}.0.zip"
 sudo mv "$GITHUB_WORKSPACE"/zip/miui_${device}_${port_os_version}.zip "$GITHUB_WORKSPACE"/zip/"${rom_name}"
 echo "rom_name=$rom_name" >>$GITHUB_ENV
 ### 输出卡刷包结束
