@@ -252,6 +252,10 @@ echo -e "${Red}- 替换相机"
 sudo rm -rf "$GITHUB_WORKSPACE"/images/product/priv-app/MiuiCamera/*
 sudo cat "$GITHUB_WORKSPACE"/"${device}"_files/MiuiCamera.apk.1 "$GITHUB_WORKSPACE"/"${device}"_files/MiuiCamera.apk.2 "$GITHUB_WORKSPACE"/"${device}"_files/MiuiCamera.apk.3 >"$GITHUB_WORKSPACE"/"${device}"_files/MiuiCamera.apk
 sudo cp -f "$GITHUB_WORKSPACE"/"${device}"_files/MiuiCamera.apk "$GITHUB_WORKSPACE"/images/product/priv-app/MiuiCamera/
+# 替换桌面
+echo -e "${Red}- 替换桌面"
+sudo rm -rf "$GITHUB_WORKSPACE"/images/product/priv-app/MiuiHome/*
+sudo cp -f "$GITHUB_WORKSPACE"/"${device}"_files/MiuiHome.apk "$GITHUB_WORKSPACE"/images/product/priv-app/MiuiHome/
 # 替换相机标定
 echo -e "${Red}- 替换相机标定"
 sudo unzip -o -q "$GITHUB_WORKSPACE"/"${device}"_files/CameraTools_beta.zip -d "$GITHUB_WORKSPACE"/images/product/app/
@@ -292,9 +296,6 @@ sudo rm -rf "$GITHUB_WORKSPACE"/"${device}"/vendor/bin/install-recovery.sh
 # 修复 init 崩溃
 echo -e "${Red}- 修复 init 崩溃"
 sudo sed -i "/start qti-testscripts/d" "$GITHUB_WORKSPACE"/"${device}"/vendor/etc/init/hw/init.qcom.rc
-# 内置 TWRP
-echo -e "${Red}- 内置 TWRP"
-sudo unzip -o -q "$GITHUB_WORKSPACE"/"${device}"_files/recovery.zip -d "$GITHUB_WORKSPACE"/"${device}"/firmware-update/
 # 添加刷机脚本
 echo -e "${Red}- 添加刷机脚本"
 sudo unzip -o -q "$GITHUB_WORKSPACE"/tools/flashtools.zip -d "$GITHUB_WORKSPACE"/images
